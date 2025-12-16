@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  flask:
+    image: daffabot/export-excel:latest
+    deploy:
+      mode: global
+      restart_policy:
+        condition: on-failure
+    ports:
+      - target: 5000
+        published: 5000
+        protocol: tcp
+        mode: ingress
+    volumes:
+      - app_data:/app/static/exports
+    environment:
+      - DB_HOST=mysql-db
+      - DB_USER=daffabot
+      - DB_PASSWORD=261291
+      - DB_NAME=web
+
+  mysql-db:
+    image: mysql:8.0
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+    environment:
+      - MYSQL_ROOT_PASSWORD=1234
+      - MYSQL_DATABASE=web
+      - MYSQL_USER=daffabot
+      - MYSQL_PASSWORD=261291
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
+  app_data:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=100.108.178.8,rw"
+      device: ":/srv/docker-exports"
